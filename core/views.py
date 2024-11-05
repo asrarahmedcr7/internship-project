@@ -77,7 +77,7 @@ def script(request):
     )
 
     # Load the excel file
-    file_path = r'data/Evalio Sample Data.xlsx' # Replace with the actual path
+    file_path = r'data/Evalio Sample Data _ Updated _ Sample.xlsx' # Replace with the actual path
     df = pd.read_excel(file_path, sheet_name = None)
 
     client_sheet = df['Base - Actual']

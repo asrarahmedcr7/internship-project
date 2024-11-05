@@ -53,9 +53,9 @@ def evaluate_result(client_actual, api_predicted, client_table_name, api_table_n
             return 'False Negative'
 
     query = f'''
-            SELECT C."Employee ID", C."{client_actual}", A."{api_predicted}"
+            SELECT C."Candidate ID", C."{client_actual}", A."{api_predicted}"
             FROM "{client_table_name}" as C JOIN "{api_table_name}" as A
-            ON C."Employee ID" = A."Employee ID";
+            ON C."Candidate ID" = A."Candidate ID";
             '''
     
     df = pd.read_sql_query(query, connection)
@@ -83,13 +83,13 @@ def script(request):
     client_sheet = df['Base - Actual']
     API_sheet = df['Base - Predicted']
 
-    client_sheet = client_sheet.drop_duplicates(subset='Employee ID', keep = 'first')
+    client_sheet = client_sheet.drop_duplicates(subset='Candidate ID', keep = 'first')
     client_sheet.to_csv('data/client_data.csv', index=False, header=False)
-    uploadToDatabase(conn, client_sheet, 'data/client_data.csv', 'Client Data', 'Employee ID')
+    uploadToDatabase(conn, client_sheet, 'data/client_data.csv', 'Client Data', 'Candidate ID')
     
-    API_sheet = API_sheet.drop_duplicates(subset='Employee ID', keep = 'first')
+    API_sheet = API_sheet.drop_duplicates(subset='Candidate ID', keep = 'first')
     API_sheet.to_csv('data/api_data.csv', index=False, header=False)
-    uploadToDatabase(conn, API_sheet, 'data/api_data.csv', 'API Data', 'Employee ID')
+    uploadToDatabase(conn, API_sheet, 'data/api_data.csv', 'API Data', 'Candidate ID')
     
     conn.close()
 

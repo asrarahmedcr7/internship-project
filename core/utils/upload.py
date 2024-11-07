@@ -9,7 +9,7 @@ def createTable(conn, df, table_name, primary_key):
         'float64': 'FLOAT',
         'object': 'TEXT',
         'bool': 'BOOLEAN',
-        'datetime64[ns]': 'TIMESTAMP',
+        'datetime64[ns]': 'DATE',
         'timedelta64[ns]': 'INTERVAL'
     }
 

@@ -3,8 +3,7 @@ import pandas as pd
 from django.conf import settings
 from client.utils.calculations import findAccuracy, findTNR, findTotal, findAccuracyLevel, fillCandidateCountLevels, fillRiskPriorityNumbers, findDemographicParity
 
-def generatePivot(result_table_name, client_table_name, primary_key):
-
+def generateDateWisePivot(result_table_name):
     conn = psycopg2.connect(
             dbname=settings.DATABASES['default']['NAME'],
             user=settings.DATABASES['default']['USER'],
@@ -26,6 +25,21 @@ def generatePivot(result_table_name, client_table_name, primary_key):
         date_wise_observations[date]['Overall Accuracy'] = findAccuracy(date_wise_observations[date])
         date_wise_observations[date]['TNR'] = findTNR(date_wise_observations[date])
         date_wise_observations[date]['Total'] = findTotal(date_wise_observations[date])
+    
+    conn.close()
+    print("DateWisePivot generated successfully")
+    return date_wise_observations
+
+
+def generateLocationWisePivot(result_table_name, client_table_name, primary_key):
+
+    conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT'],
+        )
 
     location_wise_observations_sql = f''' SELECT "Location", "Observation type", COUNT(*) AS count
             FROM "{result_table_name}" JOIN "{client_table_name}" ON "{result_table_name}"."{primary_key}" = "{client_table_name}"."{primary_key}"
@@ -40,7 +54,25 @@ def generatePivot(result_table_name, client_table_name, primary_key):
     
     location_wise_observations = fillCandidateCountLevels(location_wise_observations)
     location_wise_observations = fillRiskPriorityNumbers(location_wise_observations)
+  
+    sorted_location_wise_observations = {}
+    for key in sorted(location_wise_observations, key = lambda location: location_wise_observations[location]['Risk Priority Number'], reverse = True):
+        sorted_location_wise_observations[key] = location_wise_observations[key]
+    
+    print("LocationWisePivot generated successfully")
+    
+    return sorted_location_wise_observations
 
+def generateGenderWisePivot(client_table_name, result_table_name, primary_key):
+
+    conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT'],
+        )
+    
     gender_wise_observations_sql = f"""
     SELECT 
         "{result_table_name}"."Date",
@@ -85,18 +117,8 @@ def generatePivot(result_table_name, client_table_name, primary_key):
 
         result_dict[gender][date]['Total'] = findTotal(result_dict[gender][date])
         result_dict[gender][date]['Demographic Parity'] = findDemographicParity(result_dict[gender][date])
-    
-    sorted_location_wise_observations = {}
-    for key in sorted(location_wise_observations, key = lambda location: location_wise_observations[location]['Risk Priority Number'], reverse = True):
-        sorted_location_wise_observations[key] = location_wise_observations[key]
-    
-    # pivot_date = pd.DataFrame(date_wise_observations)
-    # pivot_location = pd.DataFrame(sorted_location_wise_observations)
+        result_dict[gender][date]['Accuracy'] = findAccuracy(result_dict[gender][date])
 
-    # with pd.ExcelWriter('../../data/pivot.xlsx') as writer:
-    #     pivot_date.to_excel(writer, sheet_name='Date Wise')
-    #     pivot_gender.to_excel(writer, sheet_name='Gender Wise')
-    #     pivot_location.to_excel(writer, sheet_name='Location Wise')
-    print("Pivot generated successfully")
     conn.close()
-    return {'date_wise_observations':date_wise_observations, 'location_wise_observations':location_wise_observations, 'gender_wise_observations':result_dict}
+    print("GenderWisePivot generated successfully")
+    return result_dict

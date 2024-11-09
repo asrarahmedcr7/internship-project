@@ -4,7 +4,7 @@
     <ul>
         {% for engagement in engagements %}
         <li>
-            <form action="{% url 'Client:viewReport' %}" method="post">
+            <form action="{% url 'Client:overallAccuracy' %}" method="post">
                 {% csrf_token %}
                 <button type="submit" value= "{engagement.id}" >{{engagement.engagement_title}} Report</button>
             </form>

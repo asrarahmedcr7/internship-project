@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+{% load custom_filters %}
+{% block content %}
+<h1>Overall Accuracy</h1>
+    <h3>
+        Overall Accuracy as on {{on_date}} : {{overall_accuracy}}
+    </h3>
+    <h3>Accuracy Trend by Date and Gender</h3>
+    <div class="graph-container">
+        <img src="/{{graph}}" alt="Accuracy Trend Graph" class="img-fluid">
+    </div>
+{% endblock %}

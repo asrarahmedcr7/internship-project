@@ -1,43 +1,5 @@
 {% extends 'core/base.html' %}
 {% load custom_filters %}
 {% block content %}
-<h2>Datewise accuracy index:</h2>
-<table class="table table-bordered table-hover table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Observation Type</th>
-            {% for date in date_wise_observations.keys %}
-                <th>{{ date|date:"d-m-Y" }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <th scope="row">Overall Accuracy</th>
-            {% for date, observations in date_wise_observations.items %}
-                <td>{{ observations|get_item:"Overall Accuracy" }}</td>
-            {% endfor %}
-        </tr>
-    </tbody>
-</table>
-<br>
-<h2>Gender Wise</h2>
-<table class="table table-bordered table-hover table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Observation Type</th>
-            {% for date in date_wise_observations.keys %}
-                <th>{{ date|date:"d-m-Y" }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <th scope="row">Overall Accuracy</th>
-            {% for date, observations in date_wise_observations.items %}
-                <td>{{ observations|get_item:"Overall Accuracy" }}</td>
-            {% endfor %}
-        </tr>
-    </tbody>
-</table>
+
 {% endblock %}

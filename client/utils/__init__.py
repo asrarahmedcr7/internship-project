@@ -1,2 +1,2 @@
-from .pivot import generatePivot
+from .pivot import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot
 from .calculations import *;

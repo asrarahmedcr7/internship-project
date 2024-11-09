@@ -1,16 +1,16 @@
 import psycopg2
 import pandas as pd
 from django.conf import settings
-from calculations import findAccuracy, findTNR, findTotal, findAccuracyLevel, fillCandidateCountLevels, fillRiskPriorityNumbers
+from client.utils.calculations import findAccuracy, findTNR, findTotal, findAccuracyLevel, fillCandidateCountLevels, fillRiskPriorityNumbers, findDemographicParity
 
 def generatePivot(result_table_name, client_table_name, primary_key):
 
     conn = psycopg2.connect(
-            dbname='hrness',
-            user='postgres',
-            password='Asrarahmed@7860',
-            host='localhost',
-            port='5432',
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT'],
         )
     
     date_wise_observations_sql = f''' SELECT "Date", "Observation type", COUNT(*) AS count
@@ -21,6 +21,7 @@ def generatePivot(result_table_name, client_table_name, primary_key):
     
     df = pd.read_sql_query(date_wise_observations_sql, conn)
     date_wise_observations = df.groupby('Date').apply(lambda x: x.set_index('Observation type')['count'].to_dict()).to_dict()
+    
     for date in date_wise_observations:
         date_wise_observations[date]['Overall Accuracy'] = findAccuracy(date_wise_observations[date])
         date_wise_observations[date]['TNR'] = findTNR(date_wise_observations[date])
@@ -81,19 +82,21 @@ def generatePivot(result_table_name, client_table_name, primary_key):
             'False Positive': row.get('False Positive', 0),
             'False Negative': row.get('False Negative', 0)
         }
+
+        result_dict[gender][date]['Total'] = findTotal(result_dict[gender][date])
+        result_dict[gender][date]['Demographic Parity'] = findDemographicParity(result_dict[gender][date])
     
     sorted_location_wise_observations = {}
     for key in sorted(location_wise_observations, key = lambda location: location_wise_observations[location]['Risk Priority Number'], reverse = True):
         sorted_location_wise_observations[key] = location_wise_observations[key]
     
-    pivot_date = pd.DataFrame(date_wise_observations)
-    pivot_location = pd.DataFrame(sorted_location_wise_observations)
+    # pivot_date = pd.DataFrame(date_wise_observations)
+    # pivot_location = pd.DataFrame(sorted_location_wise_observations)
 
-    with pd.ExcelWriter('../../data/pivot.xlsx') as writer:
-        pivot_date.to_excel(writer, sheet_name='Date Wise')
-        pivot_gender.to_excel(writer, sheet_name='Gender Wise')
-        pivot_location.to_excel(writer, sheet_name='Location Wise')
+    # with pd.ExcelWriter('../../data/pivot.xlsx') as writer:
+    #     pivot_date.to_excel(writer, sheet_name='Date Wise')
+    #     pivot_gender.to_excel(writer, sheet_name='Gender Wise')
+    #     pivot_location.to_excel(writer, sheet_name='Location Wise')
     print("Pivot generated successfully")
     conn.close()
-
-generatePivot('Result', 'Client Data', 'Candidate ID')
+    return {'date_wise_observations':date_wise_observations, 'location_wise_observations':location_wise_observations, 'gender_wise_observations':result_dict}

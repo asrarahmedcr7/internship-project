@@ -1,0 +1,14 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+    <ul>
+        {% for engagement in engagements %}
+        <li>
+            <form action="{% url 'Client:viewReport' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" value= "{engagement.id}" >{{engagement.engagement_title}} Report</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

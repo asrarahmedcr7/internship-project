@@ -1,0 +1,50 @@
+{% extends 'Client/report_base.html' %}
+{% load custom_filters %}
+{% block title %}Fairness and Bias{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <!-- Page Heading -->
+    <div class="text-center mb-4">
+        <h1 class="display-4 font-weight-bold">Fairness and Bias</h1>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <b><h4>Description:</h4></b>
+        These metrics are based on the Demographic Parity concept which
+        suggests that the tendency of the model to reject a candidate <i>should be equal</i>
+        across demographic groupings like Gender, Location, Age etc
+    </div>
+    
+    <div class="card shadow-lg mb-5">
+        <div class="card-body">
+            <div class="graph-container text-center">
+                <img src="/{{ graph }}" alt="Specificity Trend Graph" class="img-fluid rounded mx-auto d-block">
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <b><h4>Interpretation:</h4></b>
+        Ideally, Demographic Parity should be the same for men and women i.e.
+        both genders should have an equal probability of getting rejected by the
+        Authentication Algorithm. 
+        <br><br>
+        Variability across between men and women would suggest that, all other
+        factors remaining the same, the model is rejecting one gender more than
+        than the other.
+        <br><br>
+        Quantifying Demographic Parity, will also help leaders' quantify the extent
+        of "discrmination" built into the algorithm.
+        <br><br>
+        A significant divergence in the Demographic Parity score indicates the
+        Gender or Location or Age Group with the highest DP value is being
+        discriminated against by the Algorithm, hence the AI Service provider
+        needs to >>
+        1. Re-evaluate the impact of these parameters on the model (ideally there
+        should not be any).
+        2. Check for unbalanced data corresponding to these features in the
+        training data
+    </div>
+
+</div>
+{% endblock %}

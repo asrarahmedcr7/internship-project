@@ -1,11 +1,10 @@
 import pandas as pd
 
 def findAccuracy(observations):
-    print(observations)
-    return (observations["True Positive"] + observations["True Negative"]) * 100 // (observations["True Positive"] + observations["True Negative"] + observations["False Negative"] + observations["False Positive"])
+    return ((observations["True Positive"] + observations["True Negative"]) * 100 )// (observations["True Positive"] + observations["True Negative"] + observations["False Negative"] + observations["False Positive"])
 
 def findDemographicParity(observations):
-    return (observations["True Positive"] + observations["False Positive"]) *100 // (observations["True Positive"] + observations["True Negative"] + observations["False Negative"] + observations["False Positive"])
+    return ((observations["True Positive"] + observations["False Positive"]) *100) // (observations["True Positive"] + observations["True Negative"] + observations["False Negative"] + observations["False Positive"])
 
 def findTNR(observations_on_a_date):
     return (observations_on_a_date["True Negative"] * 100) // (observations_on_a_date["True Negative"] + observations_on_a_date["False Positive"])

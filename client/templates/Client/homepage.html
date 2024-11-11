@@ -1,14 +1,20 @@
-{% extends 'core/base.html' %}
+{% extends 'Client/base.html' %}
 
 {% block content %}
-    <ul>
-        {% for engagement in engagements %}
-        <li>
-            <form action="{% url 'Client:overallAccuracy' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" value= "{engagement.id}" >{{engagement.engagement_title}} Report</button>
-            </form>
-        </li>
-        {% endfor %}
-    </ul>
+    <div class="container mt-4">
+        <h3 class="mb-3">Engagement Reports</h3>
+        <ul class="list-group">
+            {% for engagement in engagements %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ engagement.engagement_title }} Report</span>
+                <form action="{% url 'Client:overallAccuracy' %}" method="post" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" name="engagement_id" value="{{ engagement.id }}" class="btn btn-primary">
+                        View Report
+                    </button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}

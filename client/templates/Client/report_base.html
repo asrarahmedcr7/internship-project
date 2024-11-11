@@ -1,0 +1,43 @@
+{% extends 'Client/base.html' %}
+{% block style %}
+<style>
+    /* Custom styling to ensure full height */
+    .offcanvas-nav {
+        background-color: #343a40;
+        color: white;
+        width: 250px;
+    }
+    .offcanvas-nav .btn {
+        color: #fff;
+    }
+    .offcanvas-nav .btn:hover {
+        background-color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block base-content %}
+    <button class="btn btn-outline-secondary btn-lg m-3 border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#sideNavbar" aria-controls="sideNavbar">
+        ☰
+    </button>
+    <div class="offcanvas offcanvas-start offcanvas-nav" tabindex="-1" id="sideNavbar" aria-labelledby="sideNavbarLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="sideNavbarLabel">Navigation</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form action="{% url 'Client:overallAccuracy' %}" method="post" class="d-grid mb-2">
+                {% csrf_token %}
+                <input type="submit" value="Overall Accuracy" class="btn btn-dark">
+            </form>
+            <form action="{% url 'Client:modelAccuracy' %}" method="post" class="d-grid mb-2">
+                {% csrf_token %}
+                <input type="submit" value="Model Accuracy" class="btn btn-dark">
+            </form>
+            <form action="{% url 'Client:fairnessAndBias' %}" method="post" class="d-grid mb-2">
+                {% csrf_token %}
+                <input type="submit" value="Fairness and Bias" class="btn btn-dark">
+            </form>
+        </div>
+    </div>
+{% endblock %}

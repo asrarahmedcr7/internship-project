@@ -87,37 +87,29 @@ def generateGenderWisePivot(client_table_name, result_table_name, primary_key):
 
     # Read the query result into a Pandas DataFrame
     df = pd.read_sql_query(gender_wise_observations_sql, conn)
-
-    # Pivot the data so each 'Observation type' becomes a column with counts
-    pivot_gender = df.pivot_table(
-        index=['Gender', 'Date'],
-        columns='Observation type',
-        values='count',
-        fill_value=0
-    ).reset_index()
+    df.to_csv('test.csv')
 
     # Convert the DataFrame to the nested dictionary format
     result_dict = {}
-    for _, row in pivot_gender.iterrows():
+    for _, row in df.iterrows():
         gender = row['Gender']
         date = row['Date']
         
         if gender not in result_dict:
             result_dict[gender] = {}
         if date not in result_dict[gender]:
-            result_dict[gender][date] = {}
+            result_dict[gender][date] = {'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}
 
         # Populate each Observation type with its count, defaulting to 0 if not present
-        result_dict[gender][date] = {
-            'True Positive': row.get('True Positive', 0),
-            'True Negative': row.get('True Negative', 0),
-            'False Positive': row.get('False Positive', 0),
-            'False Negative': row.get('False Negative', 0)
-        }
+        if row['Observation type'] not in result_dict[gender][date]:
+            result_dict[gender][date][row['Observation type']] = 0
+        result_dict[gender][date][row['Observation type']] += row['count']
 
-        result_dict[gender][date]['Total'] = findTotal(result_dict[gender][date])
-        result_dict[gender][date]['Demographic Parity'] = findDemographicParity(result_dict[gender][date])
-        result_dict[gender][date]['Accuracy'] = findAccuracy(result_dict[gender][date])
+    for gender in result_dict:
+        for date in result_dict[gender]:
+            result_dict[gender][date]['Total'] = findTotal(result_dict[gender][date])
+            result_dict[gender][date]['Demographic Parity'] = findDemographicParity(result_dict[gender][date])
+            result_dict[gender][date]['Accuracy'] = findAccuracy(result_dict[gender][date])
 
     conn.close()
     print("GenderWisePivot generated successfully")

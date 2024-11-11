@@ -1,4 +1,4 @@
-{% extends 'core/base.html' %}
+{% extends 'Client/base.html' %}
 
 {% block content %}
     <form action="{% url 'Client:login' %}" method="post">
@@ -6,7 +6,12 @@
         <input type="text" name="username" id = "username">
         <label for="username">Username</label>
         <input type="password" name="password" id = "password">
-        <label for="password">password</label>
+        <label for="password">Password</label>
         <input type="submit" value="Login">
     </form>
+    {% if error %}
+        <div class="alert alert-danger">
+            {{error}}
+        </div>
+    {% endif %}
 {% endblock %}

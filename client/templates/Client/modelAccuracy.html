@@ -1,0 +1,70 @@
+{% extends 'Client/report_base.html' %}
+{% load custom_filters %}
+{% block title %}Model Accuracy{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <!-- Page Heading -->
+    <div class="text-center mb-4">
+        <h1 class="display-4 font-weight-bold">Model Accuracy</h1>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <b><h4>Description:</h4></b>
+        Number of times candidates were classified as Genuine as a percentage of times when they should have been classified as Genuine. 
+        <br>TNR = True Negative / (True Negative + False Positive)
+    </div>
+    
+    <!-- Overall Specificity -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-body text-center">
+            <h3 class="text-primary font-weight-bold">Overall Specificity as on {{ on_date|date:"d-m-y" }}</h3>
+            <h2 class="text-success font-weight-bold">{{ overall_tnr }}%</h2>
+        </div>
+    </div>
+    
+    <!-- Accuracy Trend by Date and Gender -->
+    <div class="text-center mb-4">
+        <h3 class="text-secondary font-weight-bold">Specificity Trend by Date and Gender</h3>
+    </div>
+    
+    <div class="card shadow-lg mb-5">
+        <div class="card-body">
+            <div class="graph-container text-center">
+                <img src="/{{ graph }}" alt="Specificity Trend Graph" class="img-fluid rounded mx-auto d-block">
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <b><h4>Interpretation:</h4></b> 
+        This shows how stringently the model is flagging candidates as Genuine. 
+        <br><br>
+        <strong><u><i>Very High Value:</i></u></strong> The model is aggressively marking candidates as Genuine
+        and candidates are not getting the benefit of doubt. <strong>Corporate Brand</strong> is
+        getting impacted since deserving candidates are walking away with a
+        negative experience.
+        <br><br>
+        <strong><u><i>Very Low Value:</i></u></strong> The model is not effective in identifying Genuine
+        candidates and hence they are entering the system. <strong>Client/CustomerRelationships</strong>
+        since deliverables are going to get impacted on account of sub-optimal associates. 
+        <br><br>
+        Whenever the value is Very High / Low please work with your AI Service
+        provider to review the model parameters.
+    </div>
+
+    <div class="container mt-4">
+        <h5 >Based on Risk Priority Number, the following are the top 3 observations</h5>
+        <ul class="list-group">
+            {% for city, observations in location_table.items %}
+                {% with rpn=observations|get_item:'RPN' %}
+                    <li class="list-group-item 
+                        {% if rpn > 6 %} text-danger {% elif rpn >= 4 %} text-warning {% else %} text-success {% endif %}">
+                        <b>{{ city }}</b> has a Risk Priority Number of <strong>{{ rpn }}</strong>
+                    </li>
+                {% endwith %}
+            {% endfor %}
+        </ul>
+    </div>
+
+</div>
+{% endblock %}

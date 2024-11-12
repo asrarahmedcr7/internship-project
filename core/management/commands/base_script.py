@@ -11,12 +11,20 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         # Adding the file path argument
         parser.add_argument(
-            '--file', type=str, required=True, help='Path to the file to process'
+            '--file', type=str, required=True, help='Path to the file to process',
+        )
+        parser.add_argument(
+            '--clientID', type=str,required=True, help='Client ID for table'
+        )
+        parser.add_argument(
+            '--engagementID', type=str,required=True, help='Engagement ID for table'
         )
 
     def handle(self, *args, **options):
 
         file_path = options['file']
+        client_id = options['clientID']
+        engagement_id = options['engagementID']
         
         # Check if the file exists
         if not os.path.isfile(file_path):
@@ -39,18 +47,18 @@ class Command(BaseCommand):
         client_sheet = client_sheet.drop_duplicates(subset='Candidate ID', keep = 'first')
         API_sheet = API_sheet.drop_duplicates(subset='Candidate ID', keep = 'first')
 
-        createTable(conn = conn, df = client_sheet, table_name = 'Client Data', primary_key = 'Candidate ID')
-        createTable(conn = conn, df = API_sheet, table_name = 'API Data', primary_key = 'Candidate ID')
+        createTable(conn = conn, df = client_sheet, table_name = f'Client Data-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
+        createTable(conn = conn, df = API_sheet, table_name = f'API Data-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
 
-        client_sheet.to_csv('data/client_data.csv', index=False, header=False)
-        uploadCsvToDatabase(conn = conn, path_to_csv_file = 'data/client_data.csv', table_name = 'Client Data')
+        client_sheet.to_csv(f'data/client_data-{client_id}-{engagement_id}.csv', index=False, header=False)
+        uploadCsvToDatabase(conn = conn, path_to_csv_file = f'data/client_data-{client_id}-{engagement_id}.csv', table_name = f'Client Data-{client_id}-{engagement_id}')
         
-        API_sheet.to_csv('data/api_data.csv', index=False, header=False)
-        uploadCsvToDatabase(conn = conn, path_to_csv_file = 'data/api_data.csv', table_name = 'API Data')
+        API_sheet.to_csv(f'data/api_data-{client_id}-{engagement_id}.csv', index=False, header=False)
+        uploadCsvToDatabase(conn = conn, path_to_csv_file = f'data/api_data-{client_id}-{engagement_id}.csv', table_name = f'API Data-{client_id}-{engagement_id}')
 
         evaluate_result(conn=conn, client_actual = 'Auth_Actual', api_predicted = 'Auth_Pred', 
-                        client_table_name = 'Client Data', api_table_name= 'API Data', 
-                        positive = 'Suspect', negative = 'Genuine')
+                        client_table_name = f'Client Data-{client_id}-{engagement_id}', api_table_name= f'API Data-{client_id}-{engagement_id}', 
+                        positive = 'Suspect', negative = 'Genuine', client_id=client_id, engagement_id=engagement_id)
         
         
         conn.close()

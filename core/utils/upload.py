@@ -9,7 +9,7 @@ def createTable(conn, df, table_name, primary_key):
         'float64': 'FLOAT',
         'object': 'TEXT',
         'bool': 'BOOLEAN',
-        'datetime64[ns]': 'DATE',
+        'datetime64[ns]': 'TIMESTAMP',
         'timedelta64[ns]': 'INTERVAL'
     }
 
@@ -38,7 +38,7 @@ def uploadCsvToDatabase(conn, path_to_csv_file, table_name):
         conn.commit()
         print(f'Values inserted into {table_name}')
 
-def evaluate_result(conn, client_actual, api_predicted, client_table_name, api_table_name, positive, negative):
+def evaluate_result(conn, client_actual, api_predicted, client_table_name, api_table_name, positive, negative, client_id, engagement_id):
 
     def classify_row(row):
         if row[client_actual] == positive and row[api_predicted] == positive:
@@ -59,10 +59,10 @@ def evaluate_result(conn, client_actual, api_predicted, client_table_name, api_t
     df = pd.read_sql_query(query, conn)
     df['Observation type'] = df.apply(classify_row, axis=1)
 
-    output_path = './data/result.csv'
+    output_path = f'./data/result-{client_id}-{engagement_id}.csv'
     df.to_csv(output_path, index=False)
 
-    createTable(conn=conn, df=df, table_name='Result', primary_key='Candidate ID')
-    uploadCsvToDatabase(conn=conn, path_to_csv_file='data/result.csv', table_name='Result')
+    createTable(conn=conn, df=df, table_name=f'Result-{client_id}-{engagement_id}', primary_key='Candidate ID')
+    uploadCsvToDatabase(conn=conn, path_to_csv_file=f'data/result-{client_id}-{engagement_id}.csv', table_name=f'Result-{client_id}-{engagement_id}')
 
     print(f'Result generated and uploaded to database.')

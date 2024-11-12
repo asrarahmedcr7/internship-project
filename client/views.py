@@ -1,7 +1,7 @@
 from django.http import Http404
 from django.conf import settings
 from django.shortcuts import render
-from .models import Client
+from .models import Client, ClientUser
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
@@ -10,13 +10,16 @@ import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use("Agg") 
 import os
-from statistics import mean
+from statistics import mean,stdev
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
 
 @login_required(login_url='Client:login')
 def homeView(request):
-    client = Client.objects.get(username = request.user.username, password = request.user.password)
+    user = ClientUser.objects.get(username=request.user.username, password=request.user.password)
+    
+    # Access the associated client (it's already the instance, no need for 'pk=user.client')
+    client = user.client  # This is the associated Client instance
     engagements = client.engagements.all()
     return render(request, 'Client/homepage.html', {'engagements':engagements})
 
@@ -34,9 +37,15 @@ def ClientLogin(request):
 
 def overallAccuracyView(request):
     if request.method == 'POST':
-        dateWisePivot = generateDateWisePivot(result_table_name = 'Result')
-        genderWisePivot = generateGenderWisePivot(client_table_name = 'Client Data', result_table_name = 'Result', primary_key = 'Candidate ID')
-        locationPivot = generateLocationWisePivot(client_table_name = 'Client Data', result_table_name = 'Result', primary_key = 'Candidate ID')
+        user = request.user
+        client_id = user.client.id
+        engagement_id = request.POST.get('engagement_id')
+
+        request.session['engagement_id'] = engagement_id
+
+        dateWisePivot = generateDateWisePivot(result_table_name = f'Result-{client_id}-{engagement_id}')
+        genderWisePivot = generateGenderWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
+        locationPivot = generateLocationWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
         overall_count = {'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}
         on_date = None
 
@@ -63,41 +72,49 @@ def overallAccuracyView(request):
         overall_accuracy = findAccuracy(overall_count)
         print(overall_accuracy)
 
-        dates = list(dateWisePivot.keys())
-        accuracy_men = [genderWisePivot['Male'][date]['Accuracy'] for date in dates]
-        accuracy_women = [genderWisePivot['Female'][date]['Accuracy'] for date in dates]
+        dates = [date.day for date in dateWisePivot]
 
-        lower_limit = mean(accuracies) - 25
-        dates_with_low_accuracy = []
-        for date in dates:
-            if dateWisePivot[date]['Overall Accuracy'] < lower_limit:
-                dates_with_low_accuracy.append(date)
+        accuracies_mean = mean(accuracies)
+        lower_limit = 40
         
         plt.figure(figsize=(10, 5))
 
-        plt.plot(dates, accuracy_men, label='Men', color='blue', linestyle='-', linewidth=3, alpha=0.7)
-        plt.plot(dates, accuracy_women, label='Women', color='red', linestyle='-', linewidth=3, alpha=0.7)
+        plt.plot(dates, accuracies, label='Accuracy', color='blue', linestyle='-', linewidth=3, alpha=0.7)
+
+        dates_with_low_accuracy = []
+        for date, accuracy in zip(dates, accuracies):
+            if accuracy < lower_limit:
+                plt.plot(date, accuracy, 'ro')
+                dates_with_low_accuracy.append(date)
+
+        print(type(on_date))
 
         plt.xlabel('Date')
-        plt.xticks(rotation=45)
+        # plt.xticks(rotation=45)
         plt.ylabel('Accuracy')
-        plt.title('Accuracy Trend by Date and Gender')
+        plt.title('Accuracy Trend by Date')
+        plt.axhline(y=lower_limit, color="r", linestyle="--", linewidth=1, label=f"Lower Limit-({lower_limit})")
+        plt.axhline(y=accuracies_mean, color="g", linestyle="--", linewidth=1, label=f"Mean-({accuracies_mean})")
+
         plt.legend()
         plt.grid(True)
         plt.tight_layout()
 
-        file_path = os.path.join(settings.MEDIA_ROOT, "dateGenderAccuracyGraph.png")
+        file_path = os.path.join(settings.MEDIA_ROOT, "dateAccuracyGraph.png")
         plt.savefig(file_path, format="png", dpi=100)
         plt.close()
 
-        return render(request, 'Client/overallAccuracy.html', {'on_date':on_date, 'overall_accuracy':overall_accuracy, 'graph':'media/dateGenderAccuracyGraph.png', 'location_table':locationPivot, 'gender_table':gender_table, 'dates_with_low_accuracy':dates_with_low_accuracy})
+        return render(request, 'Client/overallAccuracy.html', {'on_date':on_date, 'overall_accuracy':overall_accuracy, 'graph':'media/dateAccuracyGraph.png', 'location_table':locationPivot, 'gender_table':gender_table, 'dates_with_low_accuracy':dates_with_low_accuracy, 'engagement_id':engagement_id})
     return Http404()
 
 def modelAccuracyView(request):
     if request.method == "POST":
-        dateWisePivot = generateDateWisePivot(result_table_name = 'Result')
-        genderWisePivot = generateGenderWisePivot(client_table_name = 'Client Data', result_table_name = 'Result', primary_key = 'Candidate ID')
-        locationWisePivot = generateLocationWisePivot(client_table_name = 'Client Data', result_table_name = 'Result', primary_key = 'Candidate ID')
+        user = request.user
+        client_id = user.client.id
+        engagement_id = request.session.get('engagement_id')
+        dateWisePivot = generateDateWisePivot(result_table_name = f'Result-{client_id}-{engagement_id}')
+        genderWisePivot = generateGenderWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
+        locationWisePivot = generateLocationWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
 
         location_table = dict.fromkeys(list(locationWisePivot.keys())[:3])
         for city in location_table:
@@ -116,12 +133,24 @@ def modelAccuracyView(request):
         tnr_women = [findTNR(genderWisePivot['Female'][date]) for date in dates]
         tnr_dateWise = [dateWisePivot[date]['TNR'] for date in dates]
 
-        tnr_mean = mean(tnr_dateWise)
-        usl, lsl = tnr_mean + 25, tnr_mean - 25
+        tnr_mean = int(mean(tnr_dateWise))
+        tnr_std = int(stdev(tnr_dateWise))
+        usl, lsl = tnr_mean + (2 * tnr_std), tnr_mean - (2 * tnr_std)
 
         plt.figure(figsize=(10, 5))
         plt.plot(dates, tnr_men, label='Men', color='blue', linestyle='-', alpha=0.7)
         plt.plot(dates, tnr_women, label='Women', color='red', linestyle='-', alpha=0.7)
+        tnr_outliers_male = []
+        for date, tnr in zip(dates, tnr_men):
+            if tnr < lsl or tnr > usl:
+                plt.plot(date, tnr, 'bo')
+                tnr_outliers_male.append(date)
+
+        tnr_outliers_female = []
+        for date, tnr in zip(dates, tnr_women):
+            if tnr < lsl or tnr > usl:
+                plt.plot(date, tnr, 'ro')
+                tnr_outliers_female.append(date)
         plt.xlabel('Date')
         plt.ylabel('Specificity')
         plt.title('Specificity Trend by Date and Gender')
@@ -141,7 +170,10 @@ def modelAccuracyView(request):
 
 def fairnessView(request):
     if request.method == "POST":
-        genderWisePivot = generateGenderWisePivot(client_table_name = 'Client Data', result_table_name = 'Result', primary_key = 'Candidate ID')
+        user = request.user
+        client_id = user.client.id
+        engagement_id = request.session.get('engagement_id')
+        genderWisePivot = generateGenderWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
         dates = [date for date in genderWisePivot['Male']]
         dpd = [abs(genderWisePivot['Male'][date]['Demographic Parity'] - genderWisePivot['Female'][date]['Demographic Parity']) for date in dates]
 
@@ -166,4 +198,3 @@ def fairnessView(request):
 
 class ClientLogoutView(LogoutView):
     next_page = reverse_lazy('Client:home')
-# result_table_name = f'Result-{engagement_id}', client_table_name = f'Client Data-{engagement_id}'

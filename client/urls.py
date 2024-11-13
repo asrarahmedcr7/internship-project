@@ -9,5 +9,6 @@ urlpatterns = [
     path('logout', views.ClientLogoutView.as_view(), name = 'logout'),
     path('Overall Accuracy', views.overallAccuracyView, name = 'overallAccuracy'),
     path('Model Accuracy', views.modelAccuracyView, name = 'modelAccuracy'),
-    path('Fairness and Bias', views.fairnessView, name = 'fairnessAndBias'),
+    path('Model Inclusivity', views.modelInclusivityView, name = 'modelInclusivity'),
+    path('about/', views.aboutView, name='about'),
 ]

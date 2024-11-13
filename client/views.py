@@ -5,7 +5,7 @@ from .models import Client, ClientUser
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
-from .utils import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot, findAccuracy, findTotal, findTNR
+from .utils import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot, findAccuracy, findTotal, findTNR, findDemographicParity
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use("Agg") 
@@ -41,6 +41,9 @@ def overallAccuracyView(request):
         client_id = user.client.id
         engagement_id = request.POST.get('engagement_id')
 
+        if engagement_id is None:
+            engagement_id = request.session.get('engagement_id')
+
         request.session['engagement_id'] = engagement_id
 
         dateWisePivot = generateDateWisePivot(result_table_name = f'Result-{client_id}-{engagement_id}')
@@ -72,19 +75,20 @@ def overallAccuracyView(request):
         overall_accuracy = findAccuracy(overall_count)
         print(overall_accuracy)
 
-        dates = [date.day for date in dateWisePivot]
+        dates = [date for date in dateWisePivot]
+        graph_dates = [date.day for date in dateWisePivot]
 
         accuracies_mean = mean(accuracies)
         lower_limit = 40
         
         plt.figure(figsize=(10, 5))
 
-        plt.plot(dates, accuracies, label='Accuracy', color='blue', linestyle='-', linewidth=3, alpha=0.7)
+        plt.plot(graph_dates, accuracies, label='Accuracy', color='blue', linestyle='-', linewidth=3, alpha=0.7)
 
         dates_with_low_accuracy = []
         for date, accuracy in zip(dates, accuracies):
             if accuracy < lower_limit:
-                plt.plot(date, accuracy, 'ro')
+                plt.plot(date.day, accuracy, 'ro')
                 dates_with_low_accuracy.append(date)
 
         print(type(on_date))
@@ -121,6 +125,7 @@ def modelAccuracyView(request):
             location_table[city] = {'RPN':locationWisePivot[city]['Risk Priority Number']}
 
         dates = [date for date in dateWisePivot]
+        graph_dates = [date.day for date in dates]
 
         total_tn, total_fp = 0, 0
         for date in dates:
@@ -138,26 +143,23 @@ def modelAccuracyView(request):
         usl, lsl = tnr_mean + (2 * tnr_std), tnr_mean - (2 * tnr_std)
 
         plt.figure(figsize=(10, 5))
-        plt.plot(dates, tnr_men, label='Men', color='blue', linestyle='-', alpha=0.7)
-        plt.plot(dates, tnr_women, label='Women', color='red', linestyle='-', alpha=0.7)
-        tnr_outliers_male = []
+        plt.plot(graph_dates, tnr_men, label='Men', color='blue', linestyle='-', alpha=0.7)
+        plt.plot(graph_dates, tnr_women, label='Women', color='red', linestyle='-', alpha=0.7)
+        
         for date, tnr in zip(dates, tnr_men):
             if tnr < lsl or tnr > usl:
-                plt.plot(date, tnr, 'bo')
-                tnr_outliers_male.append(date)
+                plt.plot(date.day, tnr, 'bo')
 
-        tnr_outliers_female = []
         for date, tnr in zip(dates, tnr_women):
             if tnr < lsl or tnr > usl:
-                plt.plot(date, tnr, 'ro')
-                tnr_outliers_female.append(date)
+                plt.plot(date.day, tnr, 'ro')
+
         plt.xlabel('Date')
         plt.ylabel('Specificity')
         plt.title('Specificity Trend by Date and Gender')
         plt.grid(True)
         plt.axhline(y=usl, color="r", linestyle="--", linewidth=1, label=f"Upper Limit ({usl})")
         plt.axhline(y=lsl, color="g", linestyle="--", linewidth=1, label=f"Lower Limit ({lsl})")
-        plt.xticks(rotation=45)
         plt.tight_layout()
         plt.legend()
 
@@ -168,20 +170,40 @@ def modelAccuracyView(request):
         return render(request, 'Client/modelAccuracy.html', {'overall_tnr':overall_tnr, "graph":'media/dateGenderSpecifictyGraph.png', 'on_date':dates[-1], 'location_table':location_table})
     return Http404()
 
-def fairnessView(request):
+def modelInclusivityView(request):
     if request.method == "POST":
         user = request.user
         client_id = user.client.id
         engagement_id = request.session.get('engagement_id')
         genderWisePivot = generateGenderWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
-        dates = [date for date in genderWisePivot['Male']]
-        dpd = [abs(genderWisePivot['Male'][date]['Demographic Parity'] - genderWisePivot['Female'][date]['Demographic Parity']) for date in dates]
+        locationWisePivot = generateLocationWisePivot(client_table_name = f'Client Data-{client_id}-{engagement_id}', result_table_name = f'Result-{client_id}-{engagement_id}', primary_key = 'Candidate ID')
+        location_wise_dp = [(findDemographicParity(locationWisePivot[location]), location) for location in locationWisePivot]
 
+        higher_dp_location = max(location_wise_dp, key=lambda x : x[0])
+
+        dates = [date for date in genderWisePivot['Male']]
+
+        genderwise_total_obs = {'Male':{'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}, 'Female':{'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}}
+        dpd = []
+
+        for date in dates:
+            dpd.append(abs(genderWisePivot['Male'][date]['Demographic Parity'] - genderWisePivot['Female'][date]['Demographic Parity']))
+            for gender in genderwise_total_obs:
+                for obs in genderwise_total_obs[gender]:
+                    genderwise_total_obs[gender][obs] += genderWisePivot[gender][date][obs]
+        
+        gender_dp = [(findDemographicParity(genderwise_total_obs[gender]), gender) for gender in genderwise_total_obs]
+        higher_dp_gender = max(gender_dp, key = lambda x : x[0])
+
+        dp_diff = dpd[-1] - dpd[-8]
+        dpd_mean = int(mean(dpd))
+            
         plt.figure(figsize=(10, 5))
-        plt.plot(dates, dpd, label='Demographic Delta', color='green', linestyle='-',linewidth=3, alpha=0.7)
-        plt.xticks(rotation=45)
+        plt.plot([date.day for date in dates], dpd, label='Demographic Delta', color='green', linestyle='-',linewidth=3, alpha=0.7)
+        plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
         plt.xlabel('Date')
         plt.ylabel('Demographic Delta')
+        plt.axhline(y=dpd_mean, color="b", linestyle="--", linewidth=1, label=f"Mean-({dpd_mean})")
         plt.title('Demographic Delta Trend by Date and Gender')
         plt.tight_layout()
         plt.legend()
@@ -192,9 +214,12 @@ def fairnessView(request):
         plt.savefig(file_path, format="png", dpi=100)
         plt.close()
 
-        return render(request, 'Client/fairness.html', {'graph':'media/dateGenderDemographicDeltaGraph.png'})
+        return render(request, 'Client/modelInclusivity.html', {'graph':'media/dateGenderDemographicDeltaGraph.png', 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':higher_dp_gender[1], 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
     return Http404()
 
+
+def aboutView(request):
+    return render(request, 'Client/about.html')
 
 class ClientLogoutView(LogoutView):
     next_page = reverse_lazy('Client:home')

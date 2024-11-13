@@ -1,0 +1,75 @@
+{% extends 'Client/base.html' %}
+{% block title %}Tracking Talent AI Effectiveness{% endblock %}
+{% block style %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: whitesmoke;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            font-weight: bold;
+        }
+        .section {
+            margin-top: 20px;
+        }
+        .icon-text {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 40px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>Tracking Talent AI Effectiveness: Why now?</h1>
+
+    <p>With the increasing adoption of AI across enterprise use-cases, end-users have an urgent need to meaningfully assess the effectiveness of the enterprise Machine Learning models.</p>
+    
+    <p>Effectively measuring the accuracy and precision of AI products is critical to ensure the <strong>Reliability</strong>, <strong>Scalability</strong>, and <strong>Safety</strong> of Enterprise AI initiatives.</p>
+    
+    <p>This assessment helps uncover model performance issues, optimize resource use, and ensure compliance with regulatory standards, all while minimizing operational risks.</p>
+
+    <div class="section">
+        <div class="icon-text">
+            <span class="icon">🔒</span>
+            <h2>Reliability</h2>
+        </div>
+        <ul>
+            <li>It is imperative for Enterprise AI Systems to be consistent in their insights.</li>
+            <li>hrness.ai tracks model performance overtime and provides proactive alerts when the model is beginning to decay.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="icon-text">
+            <span class="icon">🔄</span>
+            <h2>Scalability</h2>
+        </div>
+        <ul>
+            <li>In addition to high level metrics, hrness.ai provides Drill Down metrics indicative of the specific parameters.</li>
+            <li>These metrics help organizations expedite Root Cause Analysis and prepare for scale.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <div class="icon-text">
+            <span class="icon">🛡️</span>
+            <h2>Safety</h2>
+        </div>
+        <ul>
+            <li>In addition to operational metrics like Accuracy, it is critical to measure Bias & Unfairness - arising out of a sub-optimal training process.</li>
+            <li>By reporting these metrics, hrness.ai helps enterprise leaders pre-emptively identify modelling issues adversely affecting specific groups.</li>
+        </ul>
+    </div>
+
+{% endblock %}

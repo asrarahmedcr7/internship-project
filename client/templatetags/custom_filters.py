@@ -11,3 +11,7 @@ def get_item(dc, key):
 @register.filter(name='split')
 def split(objs):
     return objs.split(',')
+
+@register.filter(name='abs_filter')
+def abs_filter(obj):
+    return abs(obj)

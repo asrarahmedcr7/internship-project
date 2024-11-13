@@ -34,9 +34,9 @@
                 {% csrf_token %}
                 <input type="submit" value="Model Accuracy" class="btn btn-dark">
             </form>
-            <form action="{% url 'Client:fairnessAndBias' %}" method="post" class="d-grid mb-2">
+            <form action="{% url 'Client:modelInclusivity' %}" method="post" class="d-grid mb-2">
                 {% csrf_token %}
-                <input type="submit" value="Fairness and Bias" class="btn btn-dark">
+                <input type="submit" value="Model Inclusivity" class="btn btn-dark">
             </form>
         </div>
     </div>

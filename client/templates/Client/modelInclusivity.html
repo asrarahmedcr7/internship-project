@@ -1,11 +1,11 @@
 {% extends 'Client/report_base.html' %}
 {% load custom_filters %}
-{% block title %}Fairness and Bias{% endblock %}
+{% block title %}Model Inclusivity{% endblock %}
 {% block content %}
 <div class="container mt-5">
     <!-- Page Heading -->
     <div class="text-center mb-4">
-        <h1 class="display-4 font-weight-bold">Fairness and Bias</h1>
+        <h1 class="display-4 font-weight-bold">Model Inclusivity</h1>
     </div>
 
     <div class="alert alert-info" role="alert">
@@ -44,6 +44,12 @@
         should not be any).
         2. Check for unbalanced data corresponding to these features in the
         training data
+    </div>
+
+    <div class="alert alert-success" role="alert">
+        Among Men and Women, the higher rejection ratio was experienced by <strong>{{higher_dp_gender}}</strong> which was <strong>{{gender_dp_value}}%</strong> <br>
+        Among all locations, the higher rejection ratio was experienced by <strong>{{higher_dp_location}}</strong> which was <strong>{{location_dp_value}}%</strong> <br>
+        Week on week, there has been an actual <strong>{% if dp_diff > 0 %}increase{% else %}decrease{% endif %}</strong> of <strong>{{dp_diff|abs_filter}}%</strong> in gender demographic disparity
     </div>
 
 </div>

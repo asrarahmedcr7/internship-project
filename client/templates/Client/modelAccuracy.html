@@ -10,27 +10,39 @@
 
     <div class="alert alert-info" role="alert">
         <b><h4>Description:</h4></b>
-        Number of times candidates were classified as Genuine as a percentage of times when they should have been classified as Genuine. 
-        <br>TNR = True Negative / (True Negative + False Positive)
+        Number of times candidates were classified as Suspect as a percentage of times when they should have been classified as Suspect. 
+        <br>TPR = True Positive / (True Positive + False Negative)
     </div>
     
     <!-- Overall Specificity -->
     <div class="card shadow-lg mb-4">
         <div class="card-body text-center">
             <h3 class="text-primary font-weight-bold">Overall Specificity as on {{ on_date|date:"d-m-y" }}</h3>
-            <h2 class="text-success font-weight-bold">{{ overall_tnr }}%</h2>
+            <h2 class="text-success font-weight-bold">{{ overall_tpr }}%</h2>
         </div>
     </div>
     
     <!-- Accuracy Trend by Date and Gender -->
     <div class="text-center mb-4">
-        <h3 class="text-secondary font-weight-bold">Specificity Trend by Date and Gender</h3>
+        <h3 class="text-secondary font-weight-bold">Sensitivity Trend for Men</h3>
     </div>
     
     <div class="card shadow-lg mb-5">
         <div class="card-body">
             <div class="graph-container text-center">
-                <img src="/{{ graph }}" alt="Specificity Trend Graph" class="img-fluid rounded mx-auto d-block">
+                <img src="/{{ graph.Male }}" alt="Sensitivity Trend Graph for Men" class="img-fluid rounded mx-auto d-block">
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <h3 class="text-secondary font-weight-bold">Sensitivity Trend for Women</h3>
+    </div>
+
+    <div class="card shadow-lg mb-5">
+        <div class="card-body">
+            <div class="graph-container text-center">
+                <img src="/{{ graph.Female }}" alt="Sensitivity Trend Graph for Women" class="img-fluid rounded mx-auto d-block">
             </div>
         </div>
     </div>
@@ -57,13 +69,17 @@
         <ul class="list-group">
             {% for city, observations in location_table.items %}
                 {% with rpn=observations|get_item:'RPN' %}
-                    <li class="list-group-item 
-                        {% if rpn > 6 %} text-danger {% elif rpn >= 4 %} text-warning {% else %} text-success {% endif %}">
+                    <li class="list-group-item">
                         <b>{{ city }}</b> has a Risk Priority Number of <strong>{{ rpn }}</strong>
                     </li>
                 {% endwith %}
             {% endfor %}
         </ul>
+    </div>
+
+    <div class="container mt-4">
+        <h5><strong>{{high_rpn_location}}</strong> has a high risk priority number because of a combination of high associate count and low accuracy.</h5>
+        <h5><strong>{{high_rpn_gender}}</strong> have a high risk priority number because of a combination of high associate count and low accuracy.</h5>
     </div>
 
 </div>

@@ -1,7 +1,7 @@
 import psycopg2
 import pandas as pd
 from django.conf import settings
-from client.utils.calculations import findAccuracy, findTNR, findTotal, findAccuracyLevel, fillCandidateCountLevels, fillRiskPriorityNumbers, findDemographicParity
+from client.utils.calculations import findAccuracy, findTPR, findTotal, fillLevels, fillRiskPriorityNumbers, findDemographicParity
 
 def generateDateWisePivot(result_table_name):
     conn = psycopg2.connect(
@@ -23,7 +23,7 @@ def generateDateWisePivot(result_table_name):
     
     for date in date_wise_observations:
         date_wise_observations[date]['Overall Accuracy'] = findAccuracy(date_wise_observations[date])
-        date_wise_observations[date]['TNR'] = findTNR(date_wise_observations[date])
+        date_wise_observations[date]['TPR'] = findTPR(date_wise_observations[date])
         date_wise_observations[date]['Total'] = findTotal(date_wise_observations[date])
     
     conn.close()
@@ -49,10 +49,9 @@ def generateLocationWisePivot(result_table_name, client_table_name, primary_key)
     location_wise_observations = df.groupby("Location").apply(lambda x: x.set_index('Observation type')['count'].to_dict()).to_dict()
     for location in location_wise_observations:
         location_wise_observations[location]['Overall Accuracy'] = findAccuracy(location_wise_observations[location])
-        location_wise_observations[location]['Accuracy Level'] = findAccuracyLevel(location_wise_observations[location]['Overall Accuracy'])
         location_wise_observations[location]['Total'] = findTotal(location_wise_observations[location])
     
-    location_wise_observations = fillCandidateCountLevels(location_wise_observations)
+    location_wise_observations = fillLevels(location_wise_observations)
     location_wise_observations = fillRiskPriorityNumbers(location_wise_observations)
   
     sorted_location_wise_observations = {}

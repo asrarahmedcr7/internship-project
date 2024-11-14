@@ -6,33 +6,24 @@ def findAccuracy(observations):
 def findDemographicParity(observations):
     return ((observations["True Positive"] + observations["False Positive"]) *100) // (observations["True Positive"] + observations["True Negative"] + observations["False Negative"] + observations["False Positive"])
 
-def findTNR(observations_on_a_date):
-    return (observations_on_a_date["True Negative"] * 100) // (observations_on_a_date["True Negative"] + observations_on_a_date["False Positive"])
-
-def findAccuracyLevel(accuracy):
-    if accuracy >= 80:
-        return 1
-    elif accuracy >= 70:
-        return 2
-    return 3
+def findTPR(observations_on_a_date):
+    return (observations_on_a_date["True Positive"] * 100) // (observations_on_a_date["True Positive"] + observations_on_a_date["False Negative"])
 
 def findTotal(observations):
     return (observations["True Positive"] + observations["True Negative"] + observations["False Negative"] + observations["False Positive"])
 
-def fillCandidateCountLevels(location_wise_observations):
-    data = {'totals' : [location_wise_observations[location]['Total'] for location in location_wise_observations]}
-    df = pd.DataFrame(data)
-    mean = df['totals'].mean()
-    std = df['totals'].std()
+def fillLevels(location_wise_observations):
+    candidate_location_data = [(location_wise_observations[location]['Total'], location) for location in location_wise_observations]
+    location_accuracy_data = [(location_wise_observations[location]['Overall Accuracy'], location) for location in location_wise_observations]
+    num_locations = len(candidate_location_data)
 
-    # Categorize the data
-    for location in location_wise_observations:
-        if location_wise_observations[location]['Total'] > mean + std:
-            location_wise_observations[location]['Candidate Count Level'] = 3
-        elif location_wise_observations[location]['Total'] >= mean - std and location_wise_observations[location]['Total'] <= mean + std:
-            location_wise_observations[location]['Candidate Count Level'] = 2
-        else:
-            location_wise_observations[location]['Candidate Count Level'] = 1
+    candidate_location_data.sort(key = lambda x : x[0], reverse = True)
+    for i in range(num_locations):
+        location_wise_observations[candidate_location_data[i][1]]['Candidate Count Level'] = num_locations - i
+
+    location_accuracy_data.sort(key = lambda x : x[0])
+    for i in range(num_locations):
+        location_wise_observations[location_accuracy_data[i][1]]['Accuracy Level'] = i + 1
 
     return location_wise_observations
 

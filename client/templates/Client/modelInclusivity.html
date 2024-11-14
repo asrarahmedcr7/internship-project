@@ -12,7 +12,7 @@
         <b><h4>Description:</h4></b>
         These metrics are based on the Demographic Parity concept which
         suggests that the tendency of the model to reject a candidate <i>should be equal</i>
-        across demographic groupings like Gender, Location, Age etc
+        across demographic groupings like Gender and Location.
     </div>
     
     <div class="card shadow-lg mb-5">
@@ -37,19 +37,19 @@
         of "discrmination" built into the algorithm.
         <br><br>
         A significant divergence in the Demographic Parity score indicates the
-        Gender or Location or Age Group with the highest DP value is being
+        Gender with the highest DP value is being
         discriminated against by the Algorithm, hence the AI Service provider
-        needs to >>
+        needs to >> <br>
         1. Re-evaluate the impact of these parameters on the model (ideally there
-        should not be any).
+        should not be any). <br>
         2. Check for unbalanced data corresponding to these features in the
-        training data
+        training data.
     </div>
 
     <div class="alert alert-success" role="alert">
-        Among Men and Women, the higher rejection ratio was experienced by <strong>{{higher_dp_gender}}</strong> which was <strong>{{gender_dp_value}}%</strong> <br>
-        Among all locations, the higher rejection ratio was experienced by <strong>{{higher_dp_location}}</strong> which was <strong>{{location_dp_value}}%</strong> <br>
-        Week on week, there has been an actual <strong>{% if dp_diff > 0 %}increase{% else %}decrease{% endif %}</strong> of <strong>{{dp_diff|abs_filter}}%</strong> in gender demographic disparity
+        Among Men and Women, the higher rejection ratio was experienced by <strong>{{higher_dp_gender}}</strong> which was <strong>{{gender_dp_value}}%</strong>. <br>
+        Among all locations, the higher rejection ratio was experienced by <strong>{{higher_dp_location}}</strong> which was <strong>{{location_dp_value}}%</strong>. <br>
+        Week on week, there has been an actual <strong>{% if dp_diff > 0 %}increase{% else %}decrease{% endif %}</strong> of <strong>{{dp_diff|abs_filter}}%</strong> in gender Demographic Disparity.
     </div>
 
 </div>

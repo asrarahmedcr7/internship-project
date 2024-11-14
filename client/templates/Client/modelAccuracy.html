@@ -10,14 +10,14 @@
 
     <div class="alert alert-info" role="alert">
         <b><h4>Description:</h4></b>
-        Number of times candidates were classified as Suspect as a percentage of times when they should have been classified as Suspect. 
+        Number of times candidates <u>were classified</u> as Suspect as a percentage of times when they <u>should have been classified</u> as Suspect. 
         <br>TPR = True Positive / (True Positive + False Negative)
     </div>
     
     <!-- Overall Specificity -->
     <div class="card shadow-lg mb-4">
         <div class="card-body text-center">
-            <h3 class="text-primary font-weight-bold">Overall Specificity as on {{ on_date|date:"d-m-y" }}</h3>
+            <h3 class="text-primary font-weight-bold">Overall Sensitivity as on {{ on_date|date:"d-m-y" }}</h3>
             <h2 class="text-success font-weight-bold">{{ overall_tpr }}%</h2>
         </div>
     </div>
@@ -49,28 +49,28 @@
 
     <div class="alert alert-info" role="alert">
         <b><h4>Interpretation:</h4></b> 
-        This shows how stringently the model is flagging candidates as Genuine. 
+        This shows how stringently the model is flagging candidates as Suspect. 
         <br><br>
-        <strong><u><i>Very High Value:</i></u></strong> The model is aggressively marking candidates as Genuine
+        <strong><u><i>Very High Value:</i></u></strong> The model is aggressively marking candidates as Suspect
         and candidates are not getting the benefit of doubt. <strong>Corporate Brand</strong> is
         getting impacted since deserving candidates are walking away with a
         negative experience.
         <br><br>
-        <strong><u><i>Very Low Value:</i></u></strong> The model is not effective in identifying Genuine
-        candidates and hence they are entering the system. <strong>Client/CustomerRelationships</strong>
-        since deliverables are going to get impacted on account of sub-optimal associates. 
+        <strong><u><i>Very Low Value:</i></u></strong> The model is not effective in identifying Suspect
+        candidates and hence they are entering the system. <strong>Client Relationships</strong>
+        are getting effected since deliverables are going to get impacted on account of sub-optimal associates. 
         <br><br>
         Whenever the value is Very High / Low please work with your AI Service
-        provider to review the model parameters.
+        provider to review the model performance.
     </div>
 
     <div class="container mt-4">
-        <h5 >Based on Risk Priority Number, the following are the top 3 observations</h5>
+        <h5 >Based on Risk Priority Number(RPN), the following are the top 3 observations</h5>
         <ul class="list-group">
             {% for city, observations in location_table.items %}
                 {% with rpn=observations|get_item:'RPN' %}
                     <li class="list-group-item">
-                        <b>{{ city }}</b> has a Risk Priority Number of <strong>{{ rpn }}</strong>
+                        <b>{{ city }}</b> has a RPN of <strong>{{ rpn }}</strong>
                     </li>
                 {% endwith %}
             {% endfor %}
@@ -78,8 +78,8 @@
     </div>
 
     <div class="container mt-4">
-        <h5><strong>{{high_rpn_location}}</strong> has a high risk priority number because of a combination of high associate count and low accuracy.</h5>
-        <h5><strong>{{high_rpn_gender}}</strong> have a high risk priority number because of a combination of high associate count and low accuracy.</h5>
+        <h5><strong>{{high_rpn_location}}</strong> has a high RPN because of a combination of high associate count, low accuracy or both.</h5>
+        <h5><strong>{{high_rpn_gender}}</strong> have a high RPN because of a combination of high associate count, low accuracy or both.</h5>
     </div>
 
 </div>

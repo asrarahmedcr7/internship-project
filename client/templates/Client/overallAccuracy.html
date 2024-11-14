@@ -10,8 +10,8 @@
 
     <div class="alert alert-info" role="alert">
         <b><h4>Description:</h4></b>
-        This is a high level metric that gives a consolidated idea of model accuracy
-        and is computed as >> Correct Precitions / Overall Predictions       
+        This is a high level metric that gives a consolidated idea of Model Accuracy
+        and is computed as >> Correct Predictions / Overall Predictions       
     </div>
     
     <!-- Overall Accuracy -->
@@ -42,7 +42,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Location</th>
-                        <th>Overall Accuracy</th>
+                        <th>Overall Accuracy(%)</th>
                         <th>Candidate Count</th>
                     </tr>
                 </thead>
@@ -64,7 +64,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Gender</th>
-                        <th>Overall Accuracy</th>
+                        <th>Overall Accuracy(%)</th>
                         <th>Candidate Count</th>
                     </tr>
                 </thead>
@@ -85,11 +85,9 @@
             <br>
             This is a good starting point to start tracking the model effectiveness and
             can be easily used by leadership to check if the model is decaying or if
-            there is an issue with the data in any specific Location, Gender or Age
-            Group. <br><br>
-            Based on the above observation - the organization will need to ag this
-            data to the AI Service provider who will need to do a feature-level drill
-            down of the model to see why the model performance is slipping.
+            there is an issue with the data in any specific Location and Gender.<br><br>
+            Based on the above observations - the organization will need to review this
+            data to the AI Service provider who will need to check the model decay.
         </div>
         
         <div class="alert alert-{% if dates_with_low_accuracy %}warning{% else %}success{%endif%}" role="alert">

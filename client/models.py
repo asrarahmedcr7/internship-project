@@ -14,7 +14,7 @@ class Client(models.Model):
 class ClientUser(AbstractUser):
     # Additional fields specific to Client can be added here if needed
     # Example
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="ClientUsers")
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="ClientUsers", null=True, blank=True)
     
     def __str__(self):
         return f'{self.client}-{self.username}'
@@ -22,6 +22,7 @@ class ClientUser(AbstractUser):
 
 class Engagement(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="engagements")
+    engagement_id = models.IntegerField()
     engagement_title = models.CharField(max_length=200)
     
     def __str__(self):

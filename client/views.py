@@ -124,7 +124,7 @@ def overallAccuracyView(request):
         plt.grid(True)
         plt.tight_layout()
         # Saving the generated graph in the media folder
-        file_path = os.path.join(settings.MEDIA_ROOT, "dateAccuracyGraph.png")
+        file_path = os.path.join(settings.MEDIA_ROOT, f"dateAccuracyGraph-{client_id}-{engagement_id}.png")
         plt.savefig(file_path, format="png", dpi=100)
         plt.close()
         # Rendering the respective template
@@ -148,7 +148,7 @@ def modelAccuracyView(request):
         plt.axhline(y=tpr_mean[gender], color="black", linestyle="--", linewidth=3, label=f"Mean ({tpr_mean[gender]})")
         plt.tight_layout()
         plt.legend()
-        file_path = os.path.join(settings.MEDIA_ROOT, f"sensitivityTrend{gender}.png")
+        file_path = os.path.join(settings.MEDIA_ROOT, f"sensitivityTrend{gender}-{client_id}-{engagement_id}.png")
         plt.savefig(file_path, format="png", dpi=100)
         plt.close()
     
@@ -227,7 +227,7 @@ def modelAccuracyView(request):
         generate_graph('Male', tpr_men, 'blue')
         generate_graph('Female', tpr_women, 'red')
 
-        return render(request, 'Client/modelAccuracy.html', {'overall_tpr':overall_tpr, "graph":{'Male':'media/sensitivityTrendMale.png', 'Female':'media/sensitivityTrendFemale.png'},  'on_date':dates[-1], 'high_rpn_location':high_rpn_location, 'high_rpn_gender':high_rpn_gender, 'location_table':location_table})
+        return render(request, 'Client/modelAccuracy.html', {'overall_tpr':overall_tpr, "graph":{'Male':f'media/sensitivityTrendMale-{client_id}-{engagement_id}.png', 'Female':f'media/sensitivityTrendFemale-{client_id}-{engagement_id}.png'},  'on_date':dates[-1], 'high_rpn_location':high_rpn_location, 'high_rpn_gender':high_rpn_gender, 'location_table':location_table})
     return Http404()
 
 def modelInclusivityView(request):
@@ -268,11 +268,11 @@ def modelInclusivityView(request):
         plt.legend()
         plt.grid(True)
         
-        file_path = os.path.join(settings.MEDIA_ROOT, "dateGenderDemographicDeltaGraph.png")
+        file_path = os.path.join(settings.MEDIA_ROOT, f"dateGenderDemographicDeltaGraph-{client_id}-{engagement_id}.png")
         plt.savefig(file_path, format="png", dpi=100)
         plt.close()
 
-        return render(request, 'Client/modelInclusivity.html', {'graph':'media/dateGenderDemographicDeltaGraph.png', 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
+        return render(request, 'Client/modelInclusivity.html', {'graph':f'media/dateGenderDemographicDeltaGraph-{client_id}-{engagement_id}.png', 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
     return Http404()
 
 def aboutView(request):

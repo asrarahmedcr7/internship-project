@@ -5,14 +5,17 @@ from .models import Client, ClientUser
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect
-from .utils import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot, findAccuracy, findTotal, findTPR, findDemographicParity, fillLevels
+from .utils import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot, findAccuracy, findTotal, findTPR, findDemographicParity, get_flag
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use("Agg") 
+from scipy.signal import savgol_filter
+import pandas as pd
 import os
 from statistics import mean,stdev
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
+import plotly.express as px
 
 @login_required(login_url='Client:login')
 def homeView(request):
@@ -101,56 +104,52 @@ def overallAccuracyView(request):
 
         # Pre-defined limit for the accuracy
         lower_limit = 40
-        
-        # Plotting the graph
-        plt.figure(figsize=(10, 5)) # Defining height and width of the graph
+
         # Plotting the trendline - date vs accuracy
-        plt.plot(graph_dates, accuracies, label='Accuracy', color='blue', linestyle='-', linewidth=3, alpha=0.7) 
+        graph = px.line(data_frame = {'Date':graph_dates, 'Accuracy':accuracies}, x = 'Date', y = 'Accuracy', title = 'Accuracy Trend', template="plotly_white")
+        # Plotting the limits and mean lines
+        graph.add_hline(y = accuracies_mean, line_dash = 'dash', line_color = 'black', annotation_text = f"Mean ({accuracies_mean})", annotation_position="top right")
+        graph.add_hline(y = lower_limit, line_dash = 'dash', line_color = 'red', annotation_text = f"Threshold-({lower_limit})", annotation_position="top right")
         # Taking out dates on which the accuracy fell below the predefined limit
         dates_with_low_accuracy = []
         for date, accuracy in zip(dates, accuracies):
             if accuracy < lower_limit:
-                plt.plot(date.day, accuracy, 'ro') # Marking the dates with a red marker
                 dates_with_low_accuracy.append(date)
-        # Labeling the graph
-        plt.xlabel('Date')
-        plt.ylabel('Accuracy')
-        plt.title('Accuracy Trend by Date')
-        # Plotting the limits and mean lines
-        plt.axhline(y=lower_limit, color="r", linestyle="--", linewidth=1, label=f"Threshold-({lower_limit})")
-        plt.axhline(y=accuracies_mean, color="g", linestyle="--", linewidth=1, label=f"Mean-({accuracies_mean})")
-        # Legend gives the detail of each line in the graph
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        # Saving the generated graph in the media folder
-        file_path = os.path.join(settings.MEDIA_ROOT, f"dateAccuracyGraph-{client_id}-{engagement_id}.png")
-        plt.savefig(file_path, format="png", dpi=100)
-        plt.close()
+        graph.add_scatter(
+                x=[date.day for date in dates_with_low_accuracy],
+                y=[dateWisePivot[date]['Overall Accuracy'] for date in dates_with_low_accuracy],
+                mode="markers",
+                marker=dict(color="red", size=10),
+                name="Below Limit"
+            )
+        accuracy_trend = graph.to_html(full_html = False)
         # Rendering the respective template
-        return render(request, 'Client/overallAccuracy.html', {'on_date':on_date, 'overall_accuracy':overall_accuracy, 'graph':'media/dateAccuracyGraph.png', 'location_table':locationPivot, 'gender_table':gender_table, 'dates_with_low_accuracy':dates_with_low_accuracy, 'engagement_id':engagement_id})
+        return render(request, 'Client/overallAccuracy.html', {'on_date':on_date, 'overall_accuracy':overall_accuracy, 'graph':accuracy_trend, 'location_table':locationPivot, 'gender_table':gender_table, 'dates_with_low_accuracy':dates_with_low_accuracy, 'engagement_id':engagement_id})
     return Http404()
 
 def modelAccuracyView(request):
-    def generate_graph(gender, tpr, clr): # Function to generate graph for each gender
-        plt.figure(figsize=(10, 5))
-        plt.plot(graph_dates, tpr, label=gender, color=clr, linestyle='-', alpha=0.7)
-        plt.xlabel('Date')
-        plt.ylabel('Sensitivity(%)')
-        plt.title(f'Sensitivity Trend for {gender}')
+
+    def generate_graph(gender, tpr): # Function to generate graph for each gender
+        graph = px.line(data_frame = {'Date':graph_dates, 'Sensitivity(%)':tpr}, x = 'Date', y = 'Sensitivity(%)', title = f'Sensitivity Trend for {gender}', template="plotly_white")
         # Marking the dates on which the curve crossed the limits
+        outliers = {'Date':[], 'Sensitivity(%)':[]}
         for date, tpr in zip(dates, tpr):
             if tpr < lsl[gender] or tpr > usl[gender]:
-                plt.plot(date.day, tpr, 'bo' if clr == 'blue' else 'ro')
-        plt.grid(True)
-        plt.axhline(y=usl[gender], color="r", linestyle="--", linewidth=1, label=f"Upper Limit ({usl[gender]})")
-        plt.axhline(y=lsl[gender], color="g", linestyle="--", linewidth=1, label=f"Lower Limit ({lsl[gender]})")
-        plt.axhline(y=tpr_mean[gender], color="black", linestyle="--", linewidth=3, label=f"Mean ({tpr_mean[gender]})")
-        plt.tight_layout()
-        plt.legend()
-        file_path = os.path.join(settings.MEDIA_ROOT, f"sensitivityTrend{gender}-{client_id}-{engagement_id}.png")
-        plt.savefig(file_path, format="png", dpi=100)
-        plt.close()
+                outliers['Date'].append(date.day)
+                outliers['Sensitivity(%)'].append(tpr)
+        graph.add_scatter(
+                x = outliers['Date'],
+                y = outliers['Sensitivity(%)'],
+                mode="markers",
+                marker=dict(color="orange", size=10),
+                name="Value out of limits"
+            )
+        graph.add_hline(y = usl[gender], line_dash = 'dash', line_color = 'red', annotation_text = f"Upper Limit ({usl[gender]})", annotation_position="top right")
+        graph.add_hline(y = lsl[gender], line_dash = 'dash', line_color = 'red', annotation_text = f"Lower Limit ({lsl[gender]})", annotation_position="top right")
+        graph.add_hline(y = tpr_mean[gender], line_dash = 'dash', line_color = 'black', annotation_text = f"Mean ({tpr_mean[gender]})", annotation_position="top right")
+
+        genderSensitivityGraph = graph.to_html(full_html = False)
+        return genderSensitivityGraph
     
     def findGenderRPN(): # Function to calculate RPN based for each gender
         gender_table['Male']['Accuracy'] = findAccuracy(gender_table['Male'])
@@ -176,8 +175,10 @@ def modelAccuracyView(request):
         gender_table['Female']['RPN'] = gender_table['Female']['Accuracy Level'] * gender_table['Female']['Candidate Count Level']
         # Returning the gender with high RPN
         if gender_table['Male']['RPN'] > gender_table['Female']['RPN']:
-            return "Male"
-        return "Female"
+            flag = get_flag(gender_table['Male'])
+            return {'gender':'Men', 'flag':flag}
+        flag = get_flag(gender_table['Female'])
+        return {'gender':'Women', 'flag':flag}
 
     if request.method == "POST":
         user = request.user
@@ -190,7 +191,7 @@ def modelAccuracyView(request):
 
         location_table = {} # Contains RPN for each location
         locations = list(locationWisePivot.keys())[:3]
-        high_rpn_location = locations[0]
+        high_rpn_location = {'location':locations[0], 'flag':get_flag(locationWisePivot[locations[0]])}
         for location in locations:
             location_table[location] = {}
             location_table[location]['RPN'] = locationWisePivot[location]['Risk Priority Number']
@@ -211,7 +212,7 @@ def modelAccuracyView(request):
                 gender_table['Male'][obs] += genderWisePivot['Male'][date][obs]
                 gender_table['Female'][obs] += genderWisePivot['Female'][date][obs]
 
-        high_rpn_gender = 'Men' if findGenderRPN() == 'Male' else 'Women'
+        high_rpn_gender = findGenderRPN()
 
         overall_tpr = (total_tp * 100) // (total_tp + total_fn)
 
@@ -224,10 +225,10 @@ def modelAccuracyView(request):
         usl = {'Male':tpr_mean['Male'] + (2 * tpr_std['Male']), 'Female':tpr_mean['Female'] + (2 * tpr_std['Female'])}
         lsl = {'Male':tpr_mean['Male'] - (2 * tpr_std['Male']), 'Female':tpr_mean['Female'] - (2 * tpr_std['Female'])}
 
-        generate_graph('Male', tpr_men, 'blue')
-        generate_graph('Female', tpr_women, 'red')
+        maleSensitivityGraph = generate_graph('Male', tpr_men)
+        femaleSensitivityGraph = generate_graph('Female', tpr_women)
 
-        return render(request, 'Client/modelAccuracy.html', {'overall_tpr':overall_tpr, "graph":{'Male':f'media/sensitivityTrendMale-{client_id}-{engagement_id}.png', 'Female':f'media/sensitivityTrendFemale-{client_id}-{engagement_id}.png'},  'on_date':dates[-1], 'high_rpn_location':high_rpn_location, 'high_rpn_gender':high_rpn_gender, 'location_table':location_table})
+        return render(request, 'Client/modelAccuracy.html', {'overall_tpr':overall_tpr, "graph":{'Male':maleSensitivityGraph, 'Female':femaleSensitivityGraph},  'on_date':dates[-1], 'high_rpn_location':high_rpn_location, 'high_rpn_gender':high_rpn_gender, 'location_table':location_table})
     return Http404()
 
 def modelInclusivityView(request):
@@ -257,22 +258,13 @@ def modelInclusivityView(request):
         dp_diff = dpd[-1] - dpd[-8]
         dpd_mean = int(mean(dpd))
         # Plotting the graph for DPD
-        plt.figure(figsize=(10, 5))
-        plt.plot([date.day for date in dates], dpd, label='Demographic Disparity', color='green', linestyle='-',linewidth=3, alpha=0.7)
-        plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
-        plt.xlabel('Date')
-        plt.ylabel('Demographic Disparity')
-        plt.axhline(y=dpd_mean, color="b", linestyle="--", linewidth=1, label=f"Mean-({dpd_mean})")
-        plt.title('Demographic Disparity Trendline by Gender')
-        plt.tight_layout()
-        plt.legend()
-        plt.grid(True)
-        
-        file_path = os.path.join(settings.MEDIA_ROOT, f"dateGenderDemographicDeltaGraph-{client_id}-{engagement_id}.png")
-        plt.savefig(file_path, format="png", dpi=100)
-        plt.close()
-
-        return render(request, 'Client/modelInclusivity.html', {'graph':f'media/dateGenderDemographicDeltaGraph-{client_id}-{engagement_id}.png', 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
+        df = pd.DataFrame({'Date':[date.day for date in dates], 'Demographic Disparity':dpd})
+        df['smooth'] = savgol_filter(df['Demographic Disparity'], window_length=11, polyorder=2)
+        graph = px.line(df, x = 'Date', y = 'Demographic Disparity', title = 'Demographic Disparity Trendline by Gender', template="plotly_white")
+        graph.add_scatter(x = df['Date'], y = df['smooth'], mode='lines', name='Smoothed Data')
+        graph.add_hline(y = dpd_mean, line_dash = 'dash', line_color = 'blue', annotation_text = f"Mean-({dpd_mean})", annotation_position="top right")
+        demographicDisparityGraph = graph.to_html(full_html = False)
+        return render(request, 'Client/modelInclusivity.html', {'graph':demographicDisparityGraph, 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
     return Http404()
 
 def aboutView(request):

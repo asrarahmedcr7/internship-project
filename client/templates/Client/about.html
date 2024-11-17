@@ -1,4 +1,5 @@
 {% extends 'Client/base.html' %}
+{% load static %}
 {% block title %}Tracking Talent AI Effectiveness{% endblock %}
 {% block style %}
     <style>
@@ -41,7 +42,7 @@
 
     <div class="section">
         <div class="icon-text">
-            <span class="icon">🔒</span>
+            <img src="{% static 'client/images/reliability.jpg' %}" alt="Reliability" class="icon-img">
             <h2>Reliability</h2>
         </div>
         <ul>
@@ -52,7 +53,7 @@
 
     <div class="section">
         <div class="icon-text">
-            <span class="icon">🔄</span>
+            <img src="{% static 'client/images/scalability.jpg' %}" alt="Scalability" class="icon-img">
             <h2>Scalability</h2>
         </div>
         <ul>
@@ -63,7 +64,7 @@
 
     <div class="section">
         <div class="icon-text">
-            <span class="icon">🛡️</span>
+            <img src="{% static 'client/images/safety.jpg' %}" alt="Safety" class="icon-img">
             <h2>Safety</h2>
         </div>
         <ul>

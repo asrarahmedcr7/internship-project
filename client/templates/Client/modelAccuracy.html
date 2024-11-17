@@ -30,7 +30,7 @@
     <div class="card shadow-lg mb-5">
         <div class="card-body">
             <div class="graph-container text-center">
-                <img src="/{{ graph.Male }}" alt="Sensitivity Trend Graph for Men" class="img-fluid rounded mx-auto d-block">
+                {{ graph.Male|safe }}
             </div>
         </div>
     </div>
@@ -42,7 +42,7 @@
     <div class="card shadow-lg mb-5">
         <div class="card-body">
             <div class="graph-container text-center">
-                <img src="/{{ graph.Female }}" alt="Sensitivity Trend Graph for Women" class="img-fluid rounded mx-auto d-block">
+                {{ graph.Female|safe }}
             </div>
         </div>
     </div>
@@ -78,8 +78,8 @@
     </div>
 
     <div class="container mt-4">
-        <h5><strong>{{high_rpn_location}}</strong> has a high RPN because of a combination of high associate count, low accuracy or both.</h5>
-        <h5><strong>{{high_rpn_gender}}</strong> have a high RPN because of a combination of high associate count, low accuracy or both.</h5>
+        <h5><strong>{{high_rpn_location.location}}</strong> has a high RPN because of a combination of {% if high_rpn_location.flag >= 0 %} high {% else %} low {% endif %}associate count and {% if high_rpn_location.flag <= 0 %} low {% else %} high {% endif %}accuracy.</h5>
+        <h5><strong>{{high_rpn_gender.gender}}</strong> have a high RPN because of a combination of {% if high_rpn_location.flag >= 0 %} high {% else %} low {% endif %}associate count and {% if high_rpn_location.flag <= 0 %} low {% else %} high {% endif %}accuracy.</h5>
     </div>
 
 </div>

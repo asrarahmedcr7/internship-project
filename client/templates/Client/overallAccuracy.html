@@ -30,7 +30,7 @@
     <div class="card shadow-lg mb-5">
         <div class="card-body">
             <div class="graph-container text-center">
-                <img src="/{{ graph }}" alt="Accuracy Trend Graph" class="img-fluid rounded mx-auto d-block">
+                {{ graph|safe }}
             </div>
         </div>
     </div>

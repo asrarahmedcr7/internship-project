@@ -31,3 +31,11 @@ def fillRiskPriorityNumbers(location_wise_observations):
     for location in location_wise_observations:
         location_wise_observations[location]['Risk Priority Number'] = location_wise_observations[location]['Candidate Count Level'] * location_wise_observations[location]['Accuracy Level']
     return location_wise_observations
+
+def get_flag(observations):
+    if observations['Accuracy Level'] > observations['Candidate Count Level']:
+        return -1
+    elif observations['Accuracy Level'] == observations['Candidate Count Level']:
+        return 0
+    else:
+        return 1

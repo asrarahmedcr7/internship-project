@@ -259,9 +259,9 @@ def modelInclusivityView(request):
         dpd_mean = int(mean(dpd))
         # Plotting the graph for DPD
         df = pd.DataFrame({'Date':[date.day for date in dates], 'Demographic Disparity':dpd})
-        df['smooth'] = savgol_filter(df['Demographic Disparity'], window_length=11, polyorder=2)
+        # df['smooth'] = savgol_filter(df['Demographic Disparity'], window_length=11, polyorder=2)
         graph = px.line(df, x = 'Date', y = 'Demographic Disparity', title = 'Demographic Disparity Trendline by Gender', template="plotly_white")
-        graph.add_scatter(x = df['Date'], y = df['smooth'], mode='lines', name='Smoothed Data')
+        # graph.add_scatter(x = df['Date'], y = df['smooth'], mode='lines', name='Smoothed Data')
         graph.add_hline(y = dpd_mean, line_dash = 'dash', line_color = 'blue', annotation_text = f"Mean-({dpd_mean})", annotation_position="top right")
         demographicDisparityGraph = graph.to_html(full_html = False)
         return render(request, 'Client/modelInclusivity.html', {'graph':demographicDisparityGraph, 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })

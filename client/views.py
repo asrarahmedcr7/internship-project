@@ -246,8 +246,10 @@ def modelInclusivityView(request):
         dates = [date for date in genderWisePivot['Male']]
         genderwise_total_obs = {'Male':{'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}, 'Female':{'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}}
         dpd = []
+        on_date = None
         for date in dates:
             dpd.append(abs(genderWisePivot['Male'][date]['Demographic Parity'] - genderWisePivot['Female'][date]['Demographic Parity']))
+            on_date = date
             for gender in genderwise_total_obs:
                 for obs in genderwise_total_obs[gender]:
                     genderwise_total_obs[gender][obs] += genderWisePivot[gender][date][obs]
@@ -264,7 +266,7 @@ def modelInclusivityView(request):
         # graph.add_scatter(x = df['Date'], y = df['smooth'], mode='lines', name='Smoothed Data')
         graph.add_hline(y = dpd_mean, line_dash = 'dash', line_color = 'blue', annotation_text = f"Mean-({dpd_mean})", annotation_position="top right")
         demographicDisparityGraph = graph.to_html(full_html = False)
-        return render(request, 'Client/modelInclusivity.html', {'graph':demographicDisparityGraph, 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
+        return render(request, 'Client/modelInclusivity.html', {'graph':demographicDisparityGraph, 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff, 'dpd':dpd[-1], 'on_date':on_date, 'dp_men':genderWisePivot['Male'][on_date]['Demographic Parity'], 'dp_women':genderWisePivot['Female'][date]['Demographic Parity']})
     return Http404()
 
 def aboutView(request):

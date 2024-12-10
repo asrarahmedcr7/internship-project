@@ -231,8 +231,10 @@ def modelInclusivityView(request):
         dates = [date for date in genderWisePivot['Male']]
         genderwise_total_obs = {'Male':{'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}, 'Female':{'True Positive':0, 'True Negative':0, 'False Positive':0, 'False Negative':0}}
         dpd = []
+        on_date = None
         for date in dates:
             dpd.append(abs(genderWisePivot['Male'][date]['Demographic Parity'] - genderWisePivot['Female'][date]['Demographic Parity']))
+            on_date = date
             for gender in genderwise_total_obs:
                 for obs in genderwise_total_obs[gender]:
                     genderwise_total_obs[gender][obs] += genderWisePivot[gender][date][obs]

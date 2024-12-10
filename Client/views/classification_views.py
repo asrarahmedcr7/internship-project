@@ -257,5 +257,9 @@ def modelInclusivityView(request):
                                                                 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women',
                                                                 'gender_dp_value':higher_dp_gender[0],
                                                                 'dp_diff':dp_diff,
+                                                                'dpd':dpd[-1],
+                                                                'on_date':on_date,
+                                                                'dp_men':genderWisePivot['Male'][on_date]['Demographic Parity'],
+                                                                'dp_women':genderWisePivot['Female'][date]['Demographic Parity'],
                                                                 'engagement_type':'classification' })
     return Http404()

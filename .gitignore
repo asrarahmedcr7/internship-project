@@ -1,1 +1,11 @@
 .env
+staticfiles
+settings.py
+# Ignore Python cache files
+__pycache__/
+
+# Ignore other files and directories
+*.pyc
+*.pyo
+*.pyd
+*.swp

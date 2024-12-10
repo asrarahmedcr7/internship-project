@@ -1,0 +1,46 @@
+{% extends 'Client/report_base.html' %}
+{% load custom_filters %}
+{% block title %}Overall Accuracy{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <!-- Page Heading -->
+    <div class="text-center mb-4">
+        <h1 class="display-4 font-weight-bold">Overall Accuracy</h1>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        <b><h4>Description:</h4></b>
+        ...
+    </div>
+    
+    <!-- Overall Accuracy -->
+    <div class="card shadow-lg mb-4">
+        <div class="card-body text-center">
+            <h3 class="text-primary font-weight-bold">Overall Accuracy as on {{ on_date|date:"d-m-y" }}</h3>
+            <h2 class="text-success font-weight-bold">{{ overall_accuracy }}%</h2>
+        </div>
+    </div>
+    
+    <!-- Accuracy Trend by Date and Gender -->
+    <div class="text-center mb-4">
+        <h3 class="text-secondary font-weight-bold">...</h3>
+    </div>
+    
+    <div class="card shadow-lg mb-5">
+        <div class="card-body">
+            <div class="graph-container text-center">
+                {{ graph|safe }}
+            </div>
+        </div>
+    </div>
+
+
+        <div class="alert alert-info" role="alert">
+            <b><h4>Interpretation:</h4></b>
+            <br>
+            ...
+        </div>
+        
+
+    </div>    
+{% endblock %}

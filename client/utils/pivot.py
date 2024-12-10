@@ -1,7 +1,7 @@
 import psycopg2
 import pandas as pd
 from django.conf import settings
-from client.utils.calculations import findAccuracy, findTPR, findTotal, fillLevels, fillRiskPriorityNumbers, findDemographicParity
+from Client.utils.calculations import findAccuracy, findTPR, findTotal, fillLevels, fillRiskPriorityNumbers, findDemographicParity
 
 def generateDateWisePivot(result_table_name):
     conn = psycopg2.connect(
@@ -113,3 +113,21 @@ def generateGenderWisePivot(client_table_name, result_table_name, primary_key):
     conn.close()
     print("GenderWisePivot generated successfully")
     return result_dict
+
+def retrieveData(table_name):
+
+    conn = psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT'],
+        )
+    
+    query = f'''
+                SELECT * FROM "{table_name}";
+            '''
+    
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df

@@ -26,4 +26,5 @@ class ClientAdmin(admin.ModelAdmin):
 @admin.register(Engagement)
 class EngagementAdmin(admin.ModelAdmin):
     list_display = ('id', 'engagement_id', 'engagement_title', 'client')
+    list_filter = ('engagement_type',)
     search_fields = ('engagement_title', 'client__name')  # client__name for ForeignKey search

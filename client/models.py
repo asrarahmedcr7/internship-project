@@ -24,6 +24,17 @@ class Engagement(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="engagements")
     engagement_id = models.IntegerField()
     engagement_title = models.CharField(max_length=200)
+
+    ENGAGEMENT_TYPES = [
+        ('classification', 'Classification'),
+        ('regression', 'Regression'),
+    ]
+
+    engagement_type = models.CharField(
+        max_length=15, 
+        choices=ENGAGEMENT_TYPES, 
+        default='classification'
+    )
     
     def __str__(self):
         return f"{self.client} - {self.engagement_title}"

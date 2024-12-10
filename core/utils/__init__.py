@@ -1,1 +1,1 @@
-from .upload import uploadCsvToDatabase, createTable, evaluate_result
+from .upload import uploadCsvToDatabase, createTable, evaluate_result, evaluate_result_regression

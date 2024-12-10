@@ -7,7 +7,7 @@
             {% for engagement in engagements %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>{{ engagement.engagement_title }} Report</span>
-                <form action="{% url 'Client:overallAccuracy' %}" method="post" class="m-0">
+                <form action="{{ engagement.engagement_type }}/Overall Accuracy" method="post" class="m-0">
                     {% csrf_token %}
                     <button type="submit" name="engagement_id" value="{{ engagement.engagement_id }}" class="btn btn-primary">
                         View Report

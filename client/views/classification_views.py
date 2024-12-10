@@ -1,43 +1,15 @@
 from django.http import Http404
 from django.conf import settings
-from django.shortcuts import render
-from .models import Client, ClientUser
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
-from django.shortcuts import redirect
-from .utils import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot, findAccuracy, findTotal, findTPR, findDemographicParity, get_flag
+from Client.utils import generateDateWisePivot, generateLocationWisePivot, generateGenderWisePivot, findAccuracy, findTotal, findTPR, findDemographicParity, get_flag
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use("Agg") 
 from scipy.signal import savgol_filter
 import pandas as pd
 import os
-from statistics import mean,stdev
-from django.contrib.auth.views import LogoutView
-from django.urls import reverse_lazy
+from statistics import mean, stdev
 import plotly.express as px
-
-@login_required(login_url='Client:login')
-def homeView(request):
-    user = ClientUser.objects.get(username=request.user.username, password=request.user.password)
-    
-    # Access the associated client (it's already the instance, no need for 'pk=user.client')
-    client = user.client  # This is the associated Client instance
-    engagements = client.engagements.all()
-    return render(request, 'Client/homepage.html', {'engagements':engagements})
-
-def ClientLogin(request):
-    if request.method == 'POST':
-        # Authenticating the person trying to log in
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None and user.is_authenticated:
-            login(request, user)
-            return redirect('Client:home')
-        else:
-            return render(request, 'Client/login.html', {'error':'Invalid Credentitals'})
-    return render(request, 'Client/login.html')
+from django.shortcuts import render
 
 def overallAccuracyView(request):
     if request.method == 'POST':
@@ -124,7 +96,14 @@ def overallAccuracyView(request):
             )
         accuracy_trend = graph.to_html(full_html = False)
         # Rendering the respective template
-        return render(request, 'Client/overallAccuracy.html', {'on_date':on_date, 'overall_accuracy':overall_accuracy, 'graph':accuracy_trend, 'location_table':locationPivot, 'gender_table':gender_table, 'dates_with_low_accuracy':dates_with_low_accuracy, 'engagement_id':engagement_id})
+        return render(request, 'Client/classification/overallAccuracy.html', {'on_date':on_date,
+                                                               'overall_accuracy':overall_accuracy,
+                                                               'graph':accuracy_trend,
+                                                               'location_table':locationPivot,
+                                                               'gender_table':gender_table,
+                                                               'dates_with_low_accuracy':dates_with_low_accuracy,
+                                                               'engagement_id':engagement_id,
+                                                               'engagement_type':'classification'})
     return Http404()
 
 def modelAccuracyView(request):
@@ -164,7 +143,7 @@ def modelAccuracyView(request):
             gender_table['Male']['Candidate Count Level'] = 1
             gender_table['Female']['Candidate Count Level'] = 2
         # Assigning Accuracy Levels for both genders
-        if gender_table['Male']['Accuracy'] > gender_table['Female']['Accuracy']:
+        if gender_table['Male']['Accuracy'] < gender_table['Female']['Accuracy']:
             gender_table['Male']['Accuracy Level'] = 2
             gender_table['Female']['Accuracy Level'] = 1
         else:
@@ -228,7 +207,13 @@ def modelAccuracyView(request):
         maleSensitivityGraph = generate_graph('Male', tpr_men)
         femaleSensitivityGraph = generate_graph('Female', tpr_women)
 
-        return render(request, 'Client/modelAccuracy.html', {'overall_tpr':overall_tpr, "graph":{'Male':maleSensitivityGraph, 'Female':femaleSensitivityGraph},  'on_date':dates[-1], 'high_rpn_location':high_rpn_location, 'high_rpn_gender':high_rpn_gender, 'location_table':location_table})
+        return render(request, 'Client/classification/modelAccuracy.html', {'overall_tpr':overall_tpr, "graph":{'Male':maleSensitivityGraph,
+                                                                                                 'Female':femaleSensitivityGraph},
+                                                                                        'on_date':dates[-1],
+                                                                                        'high_rpn_location':high_rpn_location,
+                                                                                        'high_rpn_gender':high_rpn_gender,
+                                                                                        'location_table':location_table,
+                                                                                        'engagement_type':'classification'})
     return Http404()
 
 def modelInclusivityView(request):
@@ -264,11 +249,11 @@ def modelInclusivityView(request):
         # graph.add_scatter(x = df['Date'], y = df['smooth'], mode='lines', name='Smoothed Data')
         graph.add_hline(y = dpd_mean, line_dash = 'dash', line_color = 'blue', annotation_text = f"Mean-({dpd_mean})", annotation_position="top right")
         demographicDisparityGraph = graph.to_html(full_html = False)
-        return render(request, 'Client/modelInclusivity.html', {'graph':demographicDisparityGraph, 'higher_dp_location':higher_dp_location[1], 'location_dp_value':higher_dp_location[0], 'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women', 'gender_dp_value':higher_dp_gender[0], 'dp_diff':dp_diff })
+        return render(request, 'Client/classification/modelInclusivity.html', {'graph':demographicDisparityGraph,
+                                                                'higher_dp_location':higher_dp_location[1],
+                                                                'location_dp_value':higher_dp_location[0],
+                                                                'higher_dp_gender':'Men' if higher_dp_gender[1] == 'Male' else 'Women',
+                                                                'gender_dp_value':higher_dp_gender[0],
+                                                                'dp_diff':dp_diff,
+                                                                'engagement_type':'classification' })
     return Http404()
-
-def aboutView(request):
-    return render(request, 'Client/about.html')
-
-class ClientLogoutView(LogoutView):
-    next_page = reverse_lazy('Client:home')

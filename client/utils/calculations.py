@@ -33,6 +33,7 @@ def fillRiskPriorityNumbers(location_wise_observations):
     return location_wise_observations
 
 def get_flag(observations):
+    print(observations['Accuracy Level'], observations['Candidate Count Level'])
     if observations['Accuracy Level'] > observations['Candidate Count Level']:
         return -1
     elif observations['Accuracy Level'] == observations['Candidate Count Level']:

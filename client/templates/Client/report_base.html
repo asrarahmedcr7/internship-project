@@ -26,15 +26,15 @@
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-            <form action="{% url 'Client:overallAccuracy' %}" method="post" class="d-grid mb-2">
+            <form action="/{{ engagement_type }}/Overall Accuracy" method="post" class="d-grid mb-2">
                 {% csrf_token %}
                 <input type="submit" value="Overall Accuracy" class="btn btn-dark">
             </form>
-            <form action="{% url 'Client:modelAccuracy' %}" method="post" class="d-grid mb-2">
+            <form action="/{{ engagement_type }}/Model Accuracy" method="post" class="d-grid mb-2">
                 {% csrf_token %}
                 <input type="submit" value="Model Accuracy" class="btn btn-dark">
             </form>
-            <form action="{% url 'Client:modelInclusivity' %}" method="post" class="d-grid mb-2">
+            <form action="/{{ engagement_type }}/Model Inclusivity" method="post" class="d-grid mb-2">
                 {% csrf_token %}
                 <input type="submit" value="Model Inclusivity" class="btn btn-dark">
             </form>

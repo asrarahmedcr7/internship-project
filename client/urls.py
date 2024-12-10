@@ -4,11 +4,14 @@ from . import views
 app_name = 'Client'
 
 urlpatterns = [
-    path('', views.homeView, name = 'home'),
-    path('login', views.ClientLogin, name = 'login'),
-    path('logout', views.ClientLogoutView.as_view(), name = 'logout'),
-    path('Overall Accuracy', views.overallAccuracyView, name = 'overallAccuracy'),
-    path('Model Accuracy', views.modelAccuracyView, name = 'modelAccuracy'),
-    path('Model Inclusivity', views.modelInclusivityView, name = 'modelInclusivity'),
-    path('about/', views.aboutView, name='about'),
+    path('', views.general_views.homeView, name = 'home'),
+    path('login', views.general_views.ClientLogin, name = 'login'),
+    path('logout', views.general_views.ClientLogoutView.as_view(), name = 'logout'),
+    path('classification/Overall Accuracy', views.classification_views.overallAccuracyView, name = 'classification_overallAccuracy'),
+    path('classification/Model Accuracy', views.classification_views.modelAccuracyView, name = 'classification_modelAccuracy'),
+    path('classification/Model Inclusivity', views.classification_views.modelInclusivityView, name = 'classification_modelInclusivity'),
+    path('about/', views.general_views.aboutView, name='about'),
+    path('regression/Overall Accuracy', views.regression_views.overallAccuracyView, name = 'regression_overallAccuracy'),
+    path('regression/Model Accuracy', views.regression_views.modelAccuracyView, name = 'regression_modelAccuracy'),
+    path('regression/Model Inclusivity', views.regression_views.modelInclusivityView, name = 'regression_modelInclusivity'),
 ]

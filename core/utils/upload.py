@@ -1,5 +1,10 @@
 from django.db import connection
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+import plotly.express as px
 
 def createTable(conn, df, table_name, primary_key):
 
@@ -66,3 +71,49 @@ def evaluate_result(conn, client_actual, api_predicted, client_table_name, api_t
     uploadCsvToDatabase(conn=conn, path_to_csv_file=f'data/result-{client_id}-{engagement_id}.csv', table_name=f'Result-{client_id}-{engagement_id}')
 
     print(f'Result generated and uploaded to database.')
+
+def evaluate_result_regression(conn, table_name, actual_compensation, predicted_compensation, client_id, engagement_id):
+
+    query = f'''
+        SELECT * FROM "{table_name}" As C;
+        '''
+    
+    df = pd.read_sql_query(query, conn)
+    X = df[['Total_Experience', 'Relevant_Experience', 'Distance_Between_Birthplace_and_Home', 'Last_Drawn_Compensation']]
+    y = df[actual_compensation]
+
+    # Standardize features
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+    # Train a Linear Regression model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    coefficients = pd.DataFrame({
+    'Feature': X.columns,
+    'Coefficient': model.coef_
+    }).sort_values(by='Coefficient', ascending=False)
+
+    y_pred = model.predict(X_test)
+    coefficients = [abs(coef) for coef in model.coef_]
+    features = X.columns
+    coefficients_df = pd.DataFrame([coefficients], columns=features)
+
+    # Mean Squared Error
+    mse = mean_squared_error(y_test, y_pred)
+    print(f"Mean Squared Error: {mse}")
+
+    # R-squared
+    r2 = r2_score(y_test, y_pred)
+    print(f"R-squared: {r2}")
+
+    coefficients_df['r2'] = r2
+    coefficients_df['mse'] = mse
+
+    output_path = f'./data/result-{client_id}-{engagement_id}.csv'
+    coefficients_df.to_csv(output_path, index=False)
+
+    createTable(conn=conn, df=coefficients_df, table_name=f'Result-{client_id}-{engagement_id}', primary_key='Candidate_ID')
+    uploadCsvToDatabase(conn=conn, path_to_csv_file=f'data/result-{client_id}-{engagement_id}.csv', table_name=f'Result-{client_id}-{engagement_id}')
